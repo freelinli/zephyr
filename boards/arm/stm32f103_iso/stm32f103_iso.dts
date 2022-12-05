@@ -34,8 +34,21 @@
 			label = "User LD2";
 		};
 	};
+        gpio_keys {
+                compatible = "gpio-keys";
+                button1: button1 {
+                        label = "User button1";
+                        gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
+                };
+                button2: button2 {
+                        label = "User button2";
+                        gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
+                };
+        };
+
 	aliases {
 		led0 = &led_1;
+		sw0 = &button1;
 	};
 
 };

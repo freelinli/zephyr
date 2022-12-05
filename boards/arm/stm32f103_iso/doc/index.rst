@@ -78,11 +78,11 @@ input (with or without pull-up or pull-down), or as peripheral alternate functio
 GPIO pins are shared with digital or analog alternate functions. All GPIOs are high current
 capable except for analog inputs.
 
-Board connectors:
+Board:
 -----------------
-.. image:: img/stm32f103_iso_pin.jpg
+.. image:: img/stm32f103_iso.jpg
    :align: center
-   :alt: Nucleo F103RB connectors
+   :alt: F103ZET6 ISO
 
 Default Zephyr Peripheral Mapping:
 ----------------------------------
@@ -133,6 +133,14 @@ You can debug an application in the usual way.  Here is an example for the
    :board: stm32f103_iso
    :maybe-skip-config:
    :goals: debug
+
+Support Command
+========
+
+```
+west build -b stm32f103_iso samples/hello_world --pristine=always && west flash
+west build -b stm32f103_iso samples/basic/button/ --pristine && west flash
+```
 
 References
 **********
