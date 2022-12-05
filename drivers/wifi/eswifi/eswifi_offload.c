@@ -7,7 +7,6 @@
 #include "eswifi_log.h"
 LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
-#include <zephyr/zephyr.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <string.h>
@@ -398,7 +397,7 @@ static int eswifi_off_put(struct net_context *context)
 	}
 
 	if (--socket->usage <= 0) {
-		memset(socket, 0, sizeof(*socket));
+		socket->context = NULL;
 	}
 done:
 	eswifi_unlock(eswifi);

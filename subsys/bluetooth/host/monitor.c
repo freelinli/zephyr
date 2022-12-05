@@ -11,10 +11,10 @@
 #include <zephyr/types.h>
 #include <stdbool.h>
 
-#include <zephyr/zephyr.h>
+#include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/init.h>
-#include <zephyr/drivers/console/uart_pipe.h>
+#include <zephyr/drivers/uart_pipe.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/drivers/uart.h>
 
@@ -141,7 +141,8 @@ static void poll_out(char c)
 	monitor_send(&c, sizeof(c));
 }
 #elif defined(CONFIG_BT_DEBUG_MONITOR_UART)
-static const struct device *monitor_dev;
+static const struct device *const monitor_dev =
+	DEVICE_DT_GET(DT_CHOSEN(zephyr_bt_mon_uart));
 
 static void poll_out(char c)
 {
@@ -219,7 +220,7 @@ void bt_monitor_send(uint16_t opcode, const void *data, size_t len)
 	atomic_clear_bit(&flags, BT_LOG_BUSY);
 }
 
-void bt_monitor_new_index(uint8_t type, uint8_t bus, bt_addr_t *addr,
+void bt_monitor_new_index(uint8_t type, uint8_t bus, const bt_addr_t *addr,
 			  const char *name)
 {
 	struct bt_monitor_new_index pkt;
@@ -310,49 +311,8 @@ static inline uint8_t monitor_priority_get(uint8_t log_level)
 	return BT_LOG_DBG;
 }
 
-static void monitor_log_put(const struct log_backend *const backend,
-			    struct log_msg *msg)
-{
-	struct bt_monitor_user_logging log;
-	struct monitor_log_ctx ctx;
-	struct bt_monitor_hdr hdr;
-	const char id[] = "bt";
-
-	log_msg_get(msg);
-
-	log_output_ctx_set(&monitor_log_output, &ctx);
-
-	ctx.total_len = 0;
-	log_output_msg_process(&monitor_log_output, msg,
-			       LOG_OUTPUT_FLAG_CRLF_NONE);
-
-	if (atomic_test_and_set_bit(&flags, BT_LOG_BUSY)) {
-		drop_add(BT_MONITOR_USER_LOGGING);
-		log_msg_put(msg);
-		return;
-	}
-
-	encode_hdr(&hdr, msg->hdr.timestamp, BT_MONITOR_USER_LOGGING,
-		   sizeof(log) + sizeof(id) + ctx.total_len + 1);
-
-	log.priority = monitor_priority_get(msg->hdr.ids.level);
-	log.ident_len = sizeof(id);
-
-	log_msg_put(msg);
-
-	monitor_send(&hdr, BT_MONITOR_BASE_HDR_LEN + hdr.hdr_len);
-	monitor_send(&log, sizeof(log));
-	monitor_send(id, sizeof(id));
-	monitor_send(ctx.msg, ctx.total_len);
-
-	/* Terminate the string with null */
-	poll_out('\0');
-
-	atomic_clear_bit(&flags, BT_LOG_BUSY);
-}
-
 static void monitor_log_process(const struct log_backend *const backend,
-				union log_msg2_generic *msg)
+				union log_msg_generic *msg)
 {
 	struct bt_monitor_user_logging user_log;
 	struct monitor_log_ctx ctx;
@@ -362,7 +322,7 @@ static void monitor_log_process(const struct log_backend *const backend,
 	log_output_ctx_set(&monitor_log_output, &ctx);
 
 	ctx.total_len = 0;
-	log_output_msg2_process(&monitor_log_output, &msg->log,
+	log_output_msg_process(&monitor_log_output, &msg->log,
 			       LOG_OUTPUT_FLAG_CRLF_NONE);
 
 	if (atomic_test_and_set_bit(&flags, BT_LOG_BUSY)) {
@@ -370,11 +330,11 @@ static void monitor_log_process(const struct log_backend *const backend,
 		return;
 	}
 
-	encode_hdr(&hdr, (uint32_t)log_msg2_get_timestamp(&msg->log),
+	encode_hdr(&hdr, (uint32_t)log_msg_get_timestamp(&msg->log),
 		   BT_MONITOR_USER_LOGGING,
 		   sizeof(user_log) + sizeof(id) + ctx.total_len + 1);
 
-	user_log.priority = monitor_priority_get(log_msg2_get_level(&msg->log));
+	user_log.priority = monitor_priority_get(log_msg_get_level(&msg->log));
 	user_log.ident_len = sizeof(id);
 
 	monitor_send(&hdr, BT_MONITOR_BASE_HDR_LEN + hdr.hdr_len);
@@ -398,8 +358,7 @@ static void monitor_log_init(const struct log_backend *const backend)
 }
 
 static const struct log_backend_api monitor_log_api = {
-	.process = IS_ENABLED(CONFIG_LOG2_DEFERRED) ? monitor_log_process : NULL,
-	.put = IS_ENABLED(CONFIG_LOG1_DEFERRED) ? monitor_log_put : NULL,
+	.process = monitor_log_process,
 	.panic = monitor_log_panic,
 	.init = monitor_log_init,
 };
@@ -418,8 +377,6 @@ static int bt_monitor_init(const struct device *d)
 				  RTT_BUFFER_NAME, rtt_up_buf, RTT_BUF_SIZE,
 				  SEGGER_RTT_MODE_NO_BLOCK_SKIP);
 #elif defined(CONFIG_BT_DEBUG_MONITOR_UART)
-	monitor_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_bt_mon_uart));
-
 	__ASSERT_NO_MSG(device_is_ready(monitor_dev));
 
 #if defined(CONFIG_UART_INTERRUPT_DRIVEN)

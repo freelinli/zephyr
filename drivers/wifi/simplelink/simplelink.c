@@ -7,7 +7,6 @@
 #include "simplelink_log.h"
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 
-#include <zephyr/zephyr.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/net/net_if.h>
@@ -265,7 +264,7 @@ static void simplelink_iface_init(struct net_if *iface)
 }
 
 static const struct net_wifi_mgmt_offload simplelink_api = {
-	.iface_api.init = simplelink_iface_init,
+	.wifi_iface.init = simplelink_iface_init,
 	.scan		= simplelink_mgmt_scan,
 	.connect	= simplelink_mgmt_connect,
 	.disconnect	= simplelink_mgmt_disconnect,

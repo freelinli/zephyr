@@ -7,7 +7,6 @@
 #include "eswifi_log.h"
 LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
-#include <zephyr/zephyr.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <string.h>
@@ -222,7 +221,6 @@ int __eswifi_off_start_client(struct eswifi_dev *eswifi,
 		LOG_ERR("Unable to start TCP/UDP client");
 		return -EIO;
 	}
-	net_context_set_state(socket->context, NET_CONTEXT_CONNECTED);
 
 	return 0;
 }
