@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2020 WuhanStudio
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <st/f1/stm32f103Xe.dtsi>
+#include <st/f1/stm32f103z(c-d-e)tx-pinctrl.dtsi>
+
+/ {
+	model = "stm32f103_mini board";
+	compatible = "st,stm32f103";
+
+	chosen {
+		zephyr,console = &usart1;
+		zephyr,shell-uart = &usart1;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led_1: led_1 {
+			gpios = <&gpiob 0 GPIO_ACTIVE_LOW>;
+			label = "User LD1";
+		};
+		led_2: led_2 {
+			gpios = <&gpiof 7 GPIO_ACTIVE_LOW>;
+			label = "User LD2";
+		};
+		led_3: led_3 {
+			gpios = <&gpiof 8 GPIO_ACTIVE_LOW>;
+			label = "User LD2";
+		};
+	};
+	aliases {
+		led0 = &led_1;
+	};
+
+};
+
+&clk_hse {
+	clock-frequency = <DT_FREQ_M(8)>;
+	status = "okay";
+};
+
+&pll {
+	mul = <9>;
+	clocks = <&clk_hse>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(72)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
+};
+
+&usart1 {
+	pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
