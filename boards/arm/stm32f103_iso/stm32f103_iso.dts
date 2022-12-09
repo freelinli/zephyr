@@ -49,6 +49,8 @@
 	aliases {
 		led0 = &led_1;
 		sw0 = &button1;
+		i2c0 = &i2c1;
+		eeprom-0 = &eeprom0;
 	};
 
 };
@@ -77,5 +79,22 @@
 	pinctrl-names = "default";
 	current-speed = <115200>;
 	status = "okay";
+};
+
+&i2c1 {
+        pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+        pinctrl-names = "default";
+        status = "okay";
+        clock-frequency = <I2C_BITRATE_FAST>;
+
+        eeprom0: eeprom@50 {
+                compatible = "atmel,at24";
+                reg = <0x50>;
+                status = "okay";
+                size = <256>;
+                pagesize = <8>;
+                address-width = <8>;
+                timeout = <5>;
+        };
 };
 
