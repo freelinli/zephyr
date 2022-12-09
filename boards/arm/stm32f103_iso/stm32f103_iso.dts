@@ -51,6 +51,7 @@
 		sw0 = &button1;
 		i2c0 = &i2c1;
 		eeprom-0 = &eeprom0;
+		spi-flash0 = &w25q64cv;
 	};
 
 };
@@ -95,6 +96,25 @@
                 pagesize = <8>;
                 address-width = <8>;
                 timeout = <5>;
+        };
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_nss_master_pa4 &spi1_sck_master_pa5
+			&spi1_miso_master_pa6 &spi1_mosi_master_pa7>;
+        pinctrl-names = "default";
+        status = "okay";
+        cs-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+        w25q64cv: w25q64cv@0 {
+                compatible = "jedec,spi-nor";
+                status = "okay";
+                reg = <0>;
+                spi-max-frequency = <4000000>;
+                size = <0x4000000>;
+                has-dpd;
+                t-enter-dpd = <4000>;
+                t-exit-dpd = <25000>;
+                jedec-id = [ef 40 17];
         };
 };
 
