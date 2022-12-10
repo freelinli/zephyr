@@ -37,3 +37,6 @@ CONFIG_ADC=y
 
 # enable ADC
 CONFIG_DAC=y
+
+# enable PWM
+CONFIG_PWM=y
