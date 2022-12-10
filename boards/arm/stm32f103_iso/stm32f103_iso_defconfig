@@ -25,3 +25,6 @@ CONFIG_EEPROM=y
 # enable SPI controller & flash
 CONFIG_SPI=y
 CONFIG_FLASH=y
+
+# enable WATCHDOG
+#CONFIG_WATCHDOG=y
