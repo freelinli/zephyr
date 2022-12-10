@@ -17,6 +17,7 @@
 		zephyr,shell-uart = &usart1;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
+		zephyr,canbus = &can1;
 	};
 
 	leds {
@@ -87,6 +88,14 @@
 	status = "okay";
 };
 
+&usart2 {
+        pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
+        pinctrl-names = "default";
+        current-speed = <115200>;
+        status = "okay";
+        /* PB5 can select RS-485 TX  */
+};
+
 &i2c1 {
         pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
         pinctrl-names = "default";
@@ -131,4 +140,39 @@
         clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
                  <&rcc STM32_SRC_LSI RTC_SEL(2)>;
         status = "okay";
+};
+
+&can1 {
+        pinctrl-0 = <&can_rx_remap1_pb8 &can_tx_remap1_pb9>;
+        pinctrl-names = "default";
+        bus-speed = <125000>;
+        status = "okay";
+};
+
+&adc1 {
+        pinctrl-0 = <&adc1_in0_pa0>;
+        pinctrl-names = "default";
+        status = "okay";
+};
+
+&dac1 {
+        status = "disabled";
+        /* dac output pins(pa4,pa5) might conflict with spi1 pins */
+        pinctrl-0 = <&dac_out1_pa4>;
+        /* pinctrl-0 = <&dac_out2_pa5>; */
+        pinctrl-names = "default";
+};
+
+&flash0 {
+        partitions {
+                compatible = "fixed-partitions";
+                #address-cells = <1>;
+                #size-cells = <1>;
+
+                /* Set 12Kb of storage at the end of the 512Kb of flash */
+                storage_partition: partition@7d000 {
+                        label = "storage";
+                        reg = <0x0007d000 DT_SIZE_K(12)>;
+                };
+        };
 };
